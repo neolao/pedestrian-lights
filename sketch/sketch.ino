@@ -7,7 +7,10 @@
 #define RED_BUTTON_PIN 13
 #define GREEN_BUTTON_PIN 6
 
-bool autoMode = true;
+enum Mode { MODE_GREEN, MODE_RED };
+enum Mode mode;
+unsigned long timer;
+int changeDelay = 15000;
 
 void setup() {
   pinMode(RED_LED_PIN_1, OUTPUT);
@@ -18,6 +21,9 @@ void setup() {
   pinMode(GREEN_LED_PIN_3, OUTPUT);
   pinMode(RED_BUTTON_PIN, INPUT_PULLUP);
   pinMode(GREEN_BUTTON_PIN, INPUT_PULLUP);
+
+  timer = millis();
+  mode = MODE_RED;
 }
 
 void changeRedLeds(int state) {
@@ -42,36 +48,36 @@ void switchToRed() {
   changeGreenLeds(LOW);
 }
 
-void checkButtons() {
+void changeMode(enum Mode newMode) {
+  mode = newMode;
+  
+  if (mode == MODE_RED) {
+    switchToRed();
+  } else {
+    switchToGreen();
+  }
+  timer = millis();
+}
+
+void loop() {
   bool redButtonPressed = (digitalRead(RED_BUTTON_PIN) == LOW);
   bool greenButtonPressed = (digitalRead(GREEN_BUTTON_PIN) == LOW);
 
   if (redButtonPressed && greenButtonPressed) {
-    autoMode = true;
+    
   } else if (redButtonPressed) {
-    autoMode = false;
-    switchToRed();
+    changeMode(MODE_RED);
   } else if (greenButtonPressed) {
-    autoMode = false;
-    switchToGreen();
+    changeMode(MODE_GREEN);
   }
-}
-
-void wait() {
-  unsigned long timer = millis();
-  while(millis() - timer < 30000) {
-    delay(200);
-    checkButtons();
+  
+  if (millis() - timer < changeDelay) {
+    if (mode == MODE_RED) {
+      changeMode(MODE_GREEN);
+    } else {
+      changeMode(MODE_RED);
+    }
+    
+    timer = millis();
   }
-}
-
-void loop() {
-  if (autoMode) {
-    switchToRed();
-  }
-  wait();
-  if (autoMode) {
-    switchToGreen();
-  }
-  wait();
 }
