@@ -7,10 +7,9 @@
 #define RED_BUTTON_PIN 13
 #define GREEN_BUTTON_PIN 6
 
-enum Mode { MODE_GREEN, MODE_RED };
-enum Mode mode;
+String mode;
 unsigned long timer;
-int changeDelay = 15000;
+unsigned long changeDelay = 15000;
 
 void setup() {
   pinMode(RED_LED_PIN_1, OUTPUT);
@@ -23,7 +22,9 @@ void setup() {
   pinMode(GREEN_BUTTON_PIN, INPUT_PULLUP);
 
   timer = millis();
-  mode = MODE_RED;
+  mode = "red";
+  switchToRed();
+  changeMode("red");
 }
 
 void changeRedLeds(int state) {
@@ -48,10 +49,10 @@ void switchToRed() {
   changeGreenLeds(LOW);
 }
 
-void changeMode(enum Mode newMode) {
+void changeMode(String newMode) {
   mode = newMode;
   
-  if (mode == MODE_RED) {
+  if (mode == "red") {
     switchToRed();
   } else {
     switchToGreen();
@@ -66,18 +67,16 @@ void loop() {
   if (redButtonPressed && greenButtonPressed) {
     
   } else if (redButtonPressed) {
-    changeMode(MODE_RED);
+    changeMode("red");
   } else if (greenButtonPressed) {
-    changeMode(MODE_GREEN);
+    changeMode("green");
   }
   
-  if (millis() - timer < changeDelay) {
-    if (mode == MODE_RED) {
-      changeMode(MODE_GREEN);
+  if (millis() - timer > changeDelay) {
+    if (mode == "red") {
+      changeMode("green");
     } else {
-      changeMode(MODE_RED);
+      changeMode("red");
     }
-    
-    timer = millis();
   }
 }
